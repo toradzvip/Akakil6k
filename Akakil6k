@@ -28,18 +28,6 @@ KillButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 KillButton.Active = true
 KillButton.Draggable = true
 
--- 🔵 Nút bay
-local FlyButton = Instance.new("TextButton", ScreenGui)
-FlyButton.Size = UDim2.new(0, 100, 0, 50)
-FlyButton.Position = UDim2.new(0.3, 0, 0.4, 0)
-FlyButton.BackgroundColor3 = Color3.fromRGB(255, 140, 0)  -- Mặc định cam (tắt)
-FlyButton.Text = "OFF (Fly)"
-FlyButton.Font = Enum.Font.SourceSansBold
-FlyButton.TextSize = 18
-FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.Active = true
-FlyButton.Draggable = true
-
 -- 🎯 Tiêu diệt NPC trong phạm vi 200 studs
 local function KillNPCs()
     RunService.Heartbeat:Connect(function()
@@ -50,7 +38,7 @@ local function KillNPCs()
 
                 if hrp and humanoid and humanoid.Health > 0 then
                     local distance = (character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if distance <= 600 then  -- ⚠️ Tăng phạm vi lên 200
+                    if distance <= 3000 then  -- ⚠️ Tăng phạm vi lên 200
                         hrp.Size = Vector3.new(75, 75, 75)
                         hrp.Transparency = 0.85
                         hrp.CanCollide = false
