@@ -4,31 +4,48 @@ getgenv().FlyMode = false
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-local humanoid = character:WaitForChild("Humanoid")
-local camera = Workspace.CurrentCamera
 
--- 📌 Tạo GUI
+local flying = false
+local jumpHeight = 200  -- Độ cao khi bay
+
+-- 📌 Tạo GUI chính (nhỏ gọn)
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 ScreenGui.ResetOnSpawn = false
 
--- 🟢 Nút tiêu diệt NPC
-local KillButton = Instance.new("TextButton", ScreenGui)
-KillButton.Size = UDim2.new(0, 100, 0, 50)
-KillButton.Position = UDim2.new(0.3, 0, 0.3, 0)
-KillButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Mặc định đỏ (tắt)
-KillButton.Text = "OFF (NPC)"
-KillButton.Font = Enum.Font.SourceSansBold
-KillButton.TextSize = 18
-KillButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-KillButton.Active = true
-KillButton.Draggable = true
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 120, 0, 40)  -- Nhỏ gọn hơn
+MainFrame.Position = UDim2.new(0.4, 0, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.Active = true
+MainFrame.Draggable = true  -- 📌 Cho phép kéo cả khung
 
--- 🎯 Tiêu diệt NPC trong phạm vi 200 studs
+-- 🔵 Nút Fly V2
+local FlyButton = Instance.new("TextButton", MainFrame)
+FlyButton.Size = UDim2.new(0.5, -2, 1, 0)
+FlyButton.Position = UDim2.new(0, 1, 0, 1)
+FlyButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+FlyButton.Text = "Fly"
+FlyButton.Font = Enum.Font.SourceSansBold
+FlyButton.TextSize = 12
+FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- 🟢 Nút tiêu diệt NPC
+local KillButton = Instance.new("TextButton", MainFrame)
+KillButton.Size = UDim2.new(0.5, -2, 1, 0)
+KillButton.Position = UDim2.new(0.5, 1, 0, 1)
+KillButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+KillButton.Text = "NPC"
+KillButton.Font = Enum.Font.SourceSansBold
+KillButton.TextSize = 12
+KillButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- 🎯 Tiêu diệt NPC
 local function KillNPCs()
     RunService.Heartbeat:Connect(function()
         if getgenv().Extend_NPC_Ennemy_Hitbox then
@@ -38,7 +55,7 @@ local function KillNPCs()
 
                 if hrp and humanoid and humanoid.Health > 0 then
                     local distance = (character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if distance <= 3000 then  -- ⚠️ Tăng phạm vi lên 200
+                    if distance <= 2000 then
                         hrp.Size = Vector3.new(75, 75, 75)
                         hrp.Transparency = 0.85
                         hrp.CanCollide = false
@@ -50,57 +67,47 @@ local function KillNPCs()
     end)
 end
 
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-local runService = game:GetService("RunService")
-local flying = false
-local jumpHeight = 100  -- Jump height
-
--- UI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
-local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-flyButton.Position = UDim2.new(0.75, 0, 0.8, 0)
-flyButton.Text = "Fly V2"
-flyButton.Parent = screenGui
-flyButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-flyButton.TextScaled = true
-flyButton.Font = Enum.Font.SourceSansBold
-flyButton.Draggable = true
-flyButton.BorderSizePixel = 3
-flyButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
-
--- Function to start flying
+-- ✈️ Chế độ bay
 local function startFlying()
     if flying then return end
     flying = true
-    flyButton.Text = "Stop"
-    flyButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    FlyButton.Text = "Stop"
+    FlyButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
-    runService.RenderStepped:Connect(function()
+    RunService.RenderStepped:Connect(function()
         if flying then
             humanoidRootPart.Velocity = Vector3.new(0, jumpHeight, 0)
         end
     end)
 end
 
--- Function to stop flying
 local function stopFlying()
     flying = false
-    flyButton.Text = "Fly V2"
-    flyButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    FlyButton.Text = "Fly"
+    FlyButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 end
 
--- Toggle flying on button click
-flyButton.MouseButton1Click:Connect(function()
+-- 🎛️ Bật/tắt tiêu diệt NPC
+KillButton.MouseButton1Click:Connect(function()
+    getgenv().Extend_NPC_Ennemy_Hitbox = not getgenv().Extend_NPC_Ennemy_Hitbox
+
+    if getgenv().Extend_NPC_Ennemy_Hitbox then
+        KillButton.Text = "ON"
+        KillButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        KillButton.Text = "NPC"
+        KillButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end)
+
+-- ✈️ Toggle chế độ bay khi nhấn nút
+FlyButton.MouseButton1Click:Connect(function()
     if flying then
         stopFlying()
     else
         startFlying()
     end
 end)
+
+KillNPCs()
 
