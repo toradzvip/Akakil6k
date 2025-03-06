@@ -62,78 +62,57 @@ local function KillNPCs()
     end)
 end
 
--- ✈️ Hệ thống bay chỉ khi giữ nút chạy
-local flySpeed = 150
-local flying = false
-local bodyVelocity = Instance.new("BodyVelocity")
-bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-local function FlyControl()
+local runService = game:GetService("RunService")
+local flying = false
+local jumpHeight = 100  -- Jump height
+
+-- UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local flyButton = Instance.new("TextButton")
+flyButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+flyButton.Position = UDim2.new(0.75, 0, 0.8, 0)
+flyButton.Text = "Fly V2"
+flyButton.Parent = screenGui
+flyButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+flyButton.TextScaled = true
+flyButton.Font = Enum.Font.SourceSansBold
+flyButton.Draggable = true
+flyButton.BorderSizePixel = 3
+flyButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Function to start flying
+local function startFlying()
     if flying then return end
     flying = true
-    bodyVelocity.Parent = humanoidRootPart
+    flyButton.Text = "Stop"
+    flyButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
-    RunService.RenderStepped:Connect(function()
-        if not getgenv().FlyMode then
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            bodyVelocity.Parent = nil
-            flying = false
-            return
-        end
-
-        -- 🕹️ Chỉ bay khi giữ nút chạy (trên điện thoại và PC)
-        if humanoid.MoveDirection.Magnitude > 0 then
-            -- 🎥 Hướng camera
-            local camDirection = camera.CFrame.LookVector
-            local moveDir = camDirection * flySpeed
-
-            -- ⏫ Điều khiển lên/xuống bằng góc nhìn
-            local pitch = camera.CFrame:ToEulerAnglesYXZ()
-            local upDownSpeed = pitch * flySpeed
-
-            -- 🚀 Điều khiển tăng tốc
-            if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
-                moveDir = moveDir * 1.5
-            end
-
-            -- Cập nhật vận tốc
-            bodyVelocity.Velocity = moveDir + Vector3.new(0, upDownSpeed, 0)
-        else
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    runService.RenderStepped:Connect(function()
+        if flying then
+            humanoidRootPart.Velocity = Vector3.new(0, jumpHeight, 0)
         end
     end)
 end
 
--- 🎛️ Bật/tắt tiêu diệt NPC
-KillButton.MouseButton1Click:Connect(function()
-    getgenv().Extend_NPC_Ennemy_Hitbox = not getgenv().Extend_NPC_Ennemy_Hitbox
+-- Function to stop flying
+local function stopFlying()
+    flying = false
+    flyButton.Text = "Fly V2"
+    flyButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+end
 
-    if getgenv().Extend_NPC_Ennemy_Hitbox then
-        KillButton.Text = "ON (NPC)"
-        KillButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)  -- Xanh (bật)
+-- Toggle flying on button click
+flyButton.MouseButton1Click:Connect(function()
+    if flying then
+        stopFlying()
     else
-        KillButton.Text = "OFF (NPC)"
-        KillButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Đỏ (tắt)
+        startFlying()
     end
 end)
-
--- ✈️ Bật/tắt bay
-FlyButton.MouseButton1Click:Connect(function()
-    getgenv().FlyMode = not getgenv().FlyMode
-
-    if getgenv().FlyMode then
-        FlyButton.Text = "ON (Fly)"
-        FlyButton.BackgroundColor3 = Color3.fromRGB(0, 191, 255)  -- Xanh dương (bật)
-        FlyControl()
-    else
-        FlyButton.Text = "OFF (Fly)"
-        FlyButton.BackgroundColor3 = Color3.fromRGB(255, 140, 0)  -- Cam (tắt)
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.Parent = nil
-        flying = false
-    end
-end)
-
-KillNPCs()
 
